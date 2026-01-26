@@ -23,5 +23,8 @@ cp -r src submit/src
 # submit checkpoints
 cp -r work submit/work
 
+# submit document
+cp -r docs submit/docs
+
 # make zip file
 zip -r submit.zip submit
