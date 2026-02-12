@@ -42,14 +42,13 @@ In this case, your program must
 Let's walk through how to use the example program. First we will train the model, telling the program to save intermediate results in the directory `work`:
 
 ```
-python src/myprogram.py train --work_dir work
+python src/myprogram.py train --work_dir work --train_data wikitext-103 
 ```
 
-Because this model doesn't actually require training, we simply saved a fake checkpoint to `work/model.checkpoint`.
 Next, we will generate predictions for the example data in `example/input.txt` and save it in `pred.txt`:
 
 ```
-python src/myprogram.py test --work_dir work --test_data example/input.txt --test_output pred.txt
+python src/myprogram.py test --work_dir work --test_data example/input.txt --test_output example/pred.txt
 ```
 
 ## Evaluating your predictions
