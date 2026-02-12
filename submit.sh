@@ -17,11 +17,14 @@ python3 src/myprogram.py test --work_dir work --test_data example/input.txt --te
 # submit requirements
 cp requirements.txt submit/requirements.txt
 
+# submit docker file
+cp Dockerfile submit/Dockerfile
+
 # submit wiki text data
 cp -r wikitext-103 submit/wikitext-103
 
-# submit docker file
-cp Dockerfile submit/Dockerfile
+# submit example data
+cp -r example submit/example
 
 # submit source code
 cp -r src submit/src
