@@ -60,7 +60,7 @@ class ArsenalBarcaEaglesModel: # We named the class to something based on our in
 
     @classmethod
     # Accesses the training data up to the limit
-    def load_train(clss, dir, limit=30000000): # Adjusted limit for optimal training speed (30M)
+    def load_train(clss, dir, limit=5000000): # Adjusted limit for optimal training speed (30M)
         train_file = os.path.join(dir, 'wiki.train.tokens') # Adjusting path to actual training file
         if not os.path.exists(train_file): # We added this as a safety check
             return ""

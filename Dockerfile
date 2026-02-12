@@ -1,7 +1,13 @@
-FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
-RUN mkdir /job
-WORKDIR /job
-VOLUME ["/job/data", "/job/src", "/job/work", "/job/output"]
+FROM python:3.12-slim
 
-# You should install any dependencies you need here.
-# RUN pip install tqdm
+# Install system utilities
+RUN apt-get update && apt-get install -y zip && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /job
+
+# Copy requirements and install BEFORE copying the rest of the code
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copying rest of source
+COPY . .
