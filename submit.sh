@@ -14,6 +14,9 @@ python src/myprogram.py train --work_dir work --train_data wikitext-103
 # make predictions on example data submit it in pred.txt
 python3 src/myprogram.py test --work_dir work --test_data example/input.txt --test_output submit/pred.txt
 
+# submit requirements
+cp requirements.txt submit/requirements.txt
+
 # submit docker file
 cp Dockerfile submit/Dockerfile
 
