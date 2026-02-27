@@ -42,7 +42,7 @@ In this case, your program must
 Let's walk through how to use the example program. First we will train the model, telling the program to save intermediate results in the directory `work`:
 
 ```
-python src/myprogram.py train --work_dir work --train_data wikitext-103 
+python src/myprogram.py train --work_dir work --train_data wikitext-103 --train_split train
 ```
 
 Next, we will generate predictions for the example data in `example/input.txt` and save it in `pred.txt`:
