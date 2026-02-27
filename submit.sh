@@ -2,14 +2,14 @@
 set -x
 set -e
 
-rm -rf submit submit.zip
+rm -rf submit submit.zip Project447Group69.zip
 mkdir -p submit
 
 # submit team.txt
 printf "Arnav Mohnot,amohnot\nAnas Slassi,aslassi\nDhruv Srinivasan,dhruvs5" > submit/team.txt
 
-# train model
-python src/myprogram.py train --work_dir work --train_data wikitext-103 
+# train model -> don't need to train again because we already trained and submitted in work
+# python src/myprogram.py train --work_dir work --train_data wikitext-103 --train_split train
 
 # make predictions on example data submit it in pred.txt
 python3 src/myprogram.py test --work_dir work --test_data example/input.txt --test_output submit/pred.txt
@@ -19,9 +19,6 @@ cp requirements.txt submit/requirements.txt
 
 # submit docker file
 cp Dockerfile submit/Dockerfile
-
-# submit wiki text data
-cp -r wikitext-103 submit/wikitext-103
 
 # submit example data
 cp -r example submit/example
@@ -36,4 +33,4 @@ cp -r work submit/work
 cp -r docs submit/docs
 
 # make zip file
-zip -r submit.zip submit
+zip -r Project447Group69.zip submit
