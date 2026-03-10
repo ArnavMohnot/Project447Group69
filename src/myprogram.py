@@ -13,8 +13,15 @@ from torch.utils.data import Dataset, DataLoader
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from tqdm import tqdm
 
-
-class ArsenalBarcaEaglesV2(nn.Module):
+# ---------------------------------------------------------------------------
+# GRU-based character-level language model
+# ---------------------------------------------------------------------------
+class CharGRULM(nn.Module):
+    """
+    A lightweight GRU model. Processes sequences left-to-right (causally)
+    with an O(N) memory footprint, making it incredibly fast for inference
+    and safe from Out-of-Memory errors during training.
+    """
     def __init__(
         self,
         vocab_size: int,
@@ -64,7 +71,7 @@ class CharDataset(Dataset):
 # ---------------------------------------------------------------------------
 # Main model wrapper
 # ---------------------------------------------------------------------------
-class SuperBowlModel:
+class AstroCharModel:
     SEQ_LEN    = 128
     EMBED_DIM  = 128
     HIDDEN_DIM = 256
@@ -82,7 +89,7 @@ class SuperBowlModel:
             torch.device("cpu")
         )
         print(f"Device set to: {self.device}")
-        self.model: ArsenalBarcaEaglesV2 | None = None
+        self.model: CharGRULM | None = None
 
     @staticmethod
     def build_vocab(text: str, max_vocab: int = 4096) -> list[str]:
@@ -164,7 +171,7 @@ class SuperBowlModel:
 
         print(f"Vocab size: {len(self.vocab)}")
 
-        self.model = ArsenalBarcaEaglesV2(
+        self.model = CharGRULM(
             vocab_size = len(self.vocab),
             embed_dim  = self.EMBED_DIM,
             hidden_dim = self.HIDDEN_DIM,
@@ -282,12 +289,12 @@ class SuperBowlModel:
         print(f"Model saved to {work_dir}/")
 
     @classmethod
-    def load(cls, work_dir: str) -> "SuperBowlModel":
+    def load(cls, work_dir: str) -> "AstroCharModel":
         with open(os.path.join(work_dir, "meta.json"), "r", encoding="utf-8") as f:
             meta = json.load(f)
 
         inst = cls(vocab=meta["vocab"], top_chars=meta["top_chars"])
-        inst.model = ArsenalBarcaEaglesV2(
+        inst.model = CharGRULM(
             vocab_size = len(inst.vocab),
             embed_dim  = cls.EMBED_DIM,
             hidden_dim = cls.HIDDEN_DIM,
@@ -319,8 +326,8 @@ if __name__ == "__main__":
 
     if args.mode == "train":
         os.makedirs(args.work_dir, exist_ok=True)
-        m    = SuperBowlModel()
-        text = SuperBowlModel.load_train(
+        m    = AstroCharModel()
+        text = AstroCharModel.load_train(
             local_path   = args.train_data,
             hf_split_key = args.train_split,
             limit        = 5_000_000, 
@@ -329,7 +336,7 @@ if __name__ == "__main__":
         m.save(args.work_dir)
 
     elif args.mode == "test":
-        m    = SuperBowlModel.load(args.work_dir)
-        data = SuperBowlModel.load_test(args.test_data)
+        m    = AstroCharModel.load(args.work_dir)
+        data = AstroCharModel.load_test(args.test_data)
         pred = m.pred_run(data)
-        SuperBowlModel.predictions_found(pred, args.test_output)
+        AstroCharModel.predictions_found(pred, args.test_output)
