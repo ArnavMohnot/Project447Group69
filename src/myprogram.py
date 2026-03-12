@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import os
 import urllib.request
 import zipfile
@@ -13,15 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from tqdm import tqdm
 
-# ---------------------------------------------------------------------------
-# GRU-based character-level language model
-# ---------------------------------------------------------------------------
-class CharGRULM(nn.Module):
-    """
-    A lightweight GRU model. Processes sequences left-to-right (causally)
-    with an O(N) memory footprint, making it incredibly fast for inference
-    and safe from Out-of-Memory errors during training.
-    """
+class ArsenalBarcaEagles(nn.Module):
     def __init__(
         self,
         vocab_size: int,
@@ -48,9 +39,6 @@ class CharGRULM(nn.Module):
         out, _ = self.gru(h)
         return self.head(out)
 
-# ---------------------------------------------------------------------------
-# Dataset
-# ---------------------------------------------------------------------------
 class CharDataset(Dataset):
     def __init__(self, text: str, char_to_id: dict, seq_len: int = 128):
         self.seq_len    = seq_len
@@ -68,10 +56,7 @@ class CharDataset(Dataset):
         chunk = self.ids[idx : idx + self.seq_len + 1]
         return chunk[:-1], chunk[1:]
 
-# ---------------------------------------------------------------------------
-# Main model wrapper
-# ---------------------------------------------------------------------------
-class AstroCharModel:
+class SuperBowlModel:
     SEQ_LEN    = 128
     EMBED_DIM  = 128
     HIDDEN_DIM = 256
@@ -89,7 +74,7 @@ class AstroCharModel:
             torch.device("cpu")
         )
         print(f"Device set to: {self.device}")
-        self.model: CharGRULM | None = None
+        self.model: ArsenalBarcaEagles | None = None
 
     @staticmethod
     def build_vocab(text: str, max_vocab: int = 4096) -> list[str]:
@@ -109,7 +94,6 @@ class AstroCharModel:
     def load_train(cls, local_path, hf_split_key="train", limit=None):
         combined = ""
         
-        # --- 1. Automated WikiText Downloader ---
         if not os.path.exists(local_path):
             print(f"Dataset not found at {local_path}. Downloading WikiText-103...")
             os.makedirs(local_path, exist_ok=True)
@@ -132,7 +116,6 @@ class AstroCharModel:
             combined += chunk
             print(f"Loaded {len(chunk):,} chars from WikiText")
 
-        # --- 2. HuggingFace Multilingual Data ---
         splits = {"train": "train.csv", "validation": "valid.csv", "test": "test.csv"}
         url = f"hf://datasets/papluca/language-identification/{splits.get(hf_split_key, 'train.csv')}"
         try:
@@ -157,9 +140,9 @@ class AstroCharModel:
         train_doc: str,
         work_dir: str,
         epochs: int = 5,
-        batch_size: int = 256, # Lowered to avoid memory spikes
+        batch_size: int = 256,
         max_vocab: int = 4096,
-        lr: float = 1e-3,      # GRUs can often handle a slightly higher learning rate
+        lr: float = 1e-3,
     ):
         print("Building vocabulary...")
         self.vocab      = self.build_vocab(train_doc, max_vocab)
@@ -171,7 +154,7 @@ class AstroCharModel:
 
         print(f"Vocab size: {len(self.vocab)}")
 
-        self.model = CharGRULM(
+        self.model = ArsenalBarcaEagles(
             vocab_size = len(self.vocab),
             embed_dim  = self.EMBED_DIM,
             hidden_dim = self.HIDDEN_DIM,
@@ -217,7 +200,7 @@ class AstroCharModel:
 
                 optimizer.zero_grad()
                 loss.backward()
-                nn.utils.clip_grad_norm_(self.model.parameters(), 5.0) # GRUs need higher clip threshold
+                nn.utils.clip_grad_norm_(self.model.parameters(), 5.0)
                 optimizer.step()
                 scheduler.step()
 
@@ -263,7 +246,7 @@ class AstroCharModel:
                     x     = torch.tensor(batch, dtype=torch.long).to(self.device)
 
                     logits   = self.model(x)
-                    last_log = logits[:, -1, :] # Predict next char
+                    last_log = logits[:, -1, :]
 
                     top3 = torch.topk(last_log, 3, dim=-1).indices.tolist()
 
@@ -271,7 +254,6 @@ class AstroCharModel:
                         pred = "".join(self.id_to_char.get(idx, "?") for idx in indices)
                         predictions[valid_idx[start + j]] = pred
                 
-                # Grading Rubric Requirement: Robust error handling
                 except Exception as e:
                     print(f"Warning: Batch inference failed - {e}")
                     for j in range(len(batch)):
@@ -289,12 +271,12 @@ class AstroCharModel:
         print(f"Model saved to {work_dir}/")
 
     @classmethod
-    def load(cls, work_dir: str) -> "AstroCharModel":
+    def load(cls, work_dir: str) -> "SuperBowlModel":
         with open(os.path.join(work_dir, "meta.json"), "r", encoding="utf-8") as f:
             meta = json.load(f)
 
         inst = cls(vocab=meta["vocab"], top_chars=meta["top_chars"])
-        inst.model = CharGRULM(
+        inst.model = ArsenalBarcaEagles(
             vocab_size = len(inst.vocab),
             embed_dim  = cls.EMBED_DIM,
             hidden_dim = cls.HIDDEN_DIM,
@@ -310,9 +292,6 @@ class AstroCharModel:
         inst.model.to(inst.device)
         return inst
   
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
 if __name__ == "__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("mode", choices=("train", "test"))
@@ -326,8 +305,8 @@ if __name__ == "__main__":
 
     if args.mode == "train":
         os.makedirs(args.work_dir, exist_ok=True)
-        m    = AstroCharModel()
-        text = AstroCharModel.load_train(
+        m    = SuperBowlModel()
+        text = SuperBowlModel.load_train(
             local_path   = args.train_data,
             hf_split_key = args.train_split,
             limit        = 5_000_000, 
@@ -336,7 +315,7 @@ if __name__ == "__main__":
         m.save(args.work_dir)
 
     elif args.mode == "test":
-        m    = AstroCharModel.load(args.work_dir)
-        data = AstroCharModel.load_test(args.test_data)
+        m    = SuperBowlModel.load(args.work_dir)
+        data = SuperBowlModel.load_test(args.test_data)
         pred = m.pred_run(data)
-        AstroCharModel.predictions_found(pred, args.test_output)
+        SuperBowlModel.predictions_found(pred, args.test_output)
